@@ -2,7 +2,7 @@ package v8
 
 /*
 #include <stdlib.h>
-#include "v8wrap.h"
+#include "includes/v8wrap.h"
 
 extern char* _go_v8_callback(unsigned int id, char* n, char* a);
 
@@ -16,7 +16,7 @@ v8_callback_init() {
 	v8_init((void*) _c_v8_callback);
 }
 */
-// #cgo LDFLAGS: -L. -lv8wrap -lstdc++
+// #cgo LDFLAGS: -Lbin -lv8wrap -lstdc++
 import "C"
 import (
 	"bytes"

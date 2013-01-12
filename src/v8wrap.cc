@@ -4,77 +4,12 @@
 #include <cstring>
 #include <cstdlib>
 #include "v8wrap.h"
+#include "json_util.h"
+#include "v8wrap_context.h"
 
 extern "C" {
 
 static v8wrap_callback _go_callback = NULL;
-static v8::Handle<v8::ObjectTemplate> global;
-
-static std::string
-to_json(v8::Handle<v8::Value> value) {
-  v8::HandleScope scope;
-  v8::TryCatch try_catch;
-  v8::Handle<v8::Object> json = v8::Handle<v8::Object>::Cast(
-    v8::Context::GetCurrent()->Global()->Get(v8::String::New("JSON")));
-  v8::Handle<v8::Function> func = v8::Handle<v8::Function>::Cast(
-    json->GetRealNamedProperty(v8::String::New("stringify")));
-  v8::Handle<v8::Value> args[1];
-  args[0] = value;
-  v8::String::Utf8Value ret(
-    func->Call(v8::Context::GetCurrent()->Global(), 1, args)->ToString());
-  return (char*) *ret;
-}
-
-v8::Handle<v8::Value>
-from_json(std::string str) {
-  v8::HandleScope scope;
-  v8::TryCatch try_catch;
-  v8::Handle<v8::Object> json = v8::Handle<v8::Object>::Cast(
-    v8::Context::GetCurrent()->Global()->Get(v8::String::New("JSON")));
-  v8::Handle<v8::Function> func = v8::Handle<v8::Function>::Cast(
-    json->GetRealNamedProperty(v8::String::New("parse")));
-  v8::Handle<v8::Value> args[1];
-  args[0] = v8::String::New(str.c_str());
-  return func->Call(v8::Context::GetCurrent()->Global(), 1, args);
-}
-
-v8::Handle<v8::Value>
-_go_call(const v8::Arguments& args) {
-  v8::Locker v8Locker;
-  uint32_t id = args[0]->ToUint32()->Value();
-  v8::String::Utf8Value name(args[1]);
-  v8::String::Utf8Value argv(args[2]);
-  v8::HandleScope scope;
-  v8::Handle<v8::Value> ret = v8::Undefined();
-  char* retv = _go_callback(id, *name, *argv);
-  if (retv != NULL) {
-    ret = from_json(retv);
-    free(retv);
-  }
-  return ret;
-}
-
-class V8Context {
-public:
-  V8Context() {
-    v8::Locker v8Locker;
-    v8::HandleScope scope;
-    global = v8::ObjectTemplate::New();
-    global->Set(v8::String::New("_go_call"),
-        v8::FunctionTemplate::New(_go_call));
-    v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
-    context_ = v8::Persistent<v8::Context>::New(context);
-  };
-
-  virtual ~V8Context() { context_.Dispose(); };
-  v8::Handle<v8::Context> context() { return context_; };
-  std::string err() const { return err_; };
-  void err(const std::string err) { this->err_ = err; }
-
-private:
-  v8::Persistent<v8::Context> context_;
-  std::string err_;
-};
 
 void
 v8_init(void *p) {
@@ -83,7 +18,7 @@ v8_init(void *p) {
 
 void*
 v8_create() {
-  return (void*) new V8Context(); 
+  return (void*) new V8Context(_go_callback); 
 }
 
 void
@@ -135,7 +70,9 @@ report_exception(v8::TryCatch& try_catch) {
 char*
 v8_execute(void *ctx, char* source) {
   v8::Locker v8Locker;
+
   V8Context *context = static_cast<V8Context *>(ctx);
+
   v8::HandleScope scope;
   v8::TryCatch try_catch;
 

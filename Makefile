@@ -1,17 +1,58 @@
+#--------Vars-------------
+BASEDIR = .
+SRCDIR = $(BASEDIR)/src
+BINDIR = $(BASEDIR)/bin
+OBJDIR = $(BASEDIR)/obj
+
+INCLUDES = -I$(BASEDIR)/includes
+
+#-------OS specific-------
 ifeq ($(GOOS),windows)
-v8wrap.dll : v8wrap.cc v8.go
-	g++ -shared -o v8wrap.dll -I. -Ic:/mingw/include/v8 v8wrap.cc -lv8 -lstdc++ -lws2_32 -lwinmm
-	dlltool -d v8wrap.def -l libv8wrap.a
-	go build -x .
-
-clean:
-	rm -f *.dll
+CXXFLAGS = -shared $(INCLUDES)
+LDFLAGS = -lv8 -lstdc++ -lws2_32 -lwinmm
+OUTLIB = $(BINDIR)/v8wrap.dll
 else
-libv8wrap.so : v8wrap.cc v8.go
-	g++ -fPIC -shared -o libv8wrap.so -I. v8wrap.cc -lv8
-	go build -x .
-
-clean:
-	rm -f *.so
+CXXFLAGS = -fPIC -shared $(INCLUDES)
+LDFLAGS = -lv8
+OUTLIB = $(BINDIR)/libv8wrap.so
 endif
 
+# Compiler and options
+CXX = g++
+#CXXFLAGS = $(INCLUDES)
+#LDFLAGS =
+#OUTLIB = $(BINDIR)/hoverbot
+
+#----Source files---------
+SOURCES = \
+	$(SRCDIR)/v8wrap.cc \
+	$(SRCDIR)/v8wrap_context.cc \
+	$(SRCDIR)/json_util.cc
+
+# Set the build destination to be different than the source
+OBJECTS = $(patsubst $(SRCDIR)/%.cc,$(OBJDIR)/%.o,$(SOURCES))
+
+#-----Commands------------
+all: checkdirs $(SOURCES) $(OUTLIB)
+
+test: checkdirs $(SOURCES) $(OUTLIB)
+	LD_LIBRARY_PATH=$(BINDIR) go test
+
+clean:
+	rm -rf $(BINDIR) $(OBJDIR)
+
+rebuild: clean all
+
+#-----Stages--------------
+$(BINDIR):
+	@mkdir -p $@
+$(OBJDIR):
+	@mkdir -p $@
+checkdirs: $(BINDIR) $(OBJDIR)
+
+$(OUTLIB): $(OBJECTS) 
+	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@ $(LDFLAGS)
+	go build -x .
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cc
+	$(CXX) $(CXXFLAGS) -c $< -o $@ $(LDFLAGS) 
