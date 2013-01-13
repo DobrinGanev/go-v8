@@ -17,16 +17,13 @@ LDFLAGS = -lv8
 OUTLIB = $(BINDIR)/libv8wrap.so
 endif
 
-# Compiler and options
+# --Compiler and options--
 CXX = g++
-#CXXFLAGS = $(INCLUDES)
-#LDFLAGS =
-#OUTLIB = $(BINDIR)/hoverbot
 
 #----Source files---------
 SOURCES = \
 	$(SRCDIR)/v8wrap.cc \
-	$(SRCDIR)/v8wrap_context.cc \
+	$(SRCDIR)/v8context.cc \
 	$(SRCDIR)/json_util.cc
 
 # Set the build destination to be different than the source

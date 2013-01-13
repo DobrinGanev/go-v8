@@ -1,7 +1,6 @@
 #include "json_util.h"
 
-std::string
-to_json(v8::Handle<v8::Value> value) {
+std::string JSONUtil::to_json(v8::Handle<v8::Value> value) {
   v8::HandleScope scope;
   v8::TryCatch try_catch;
   v8::Handle<v8::Object> json = v8::Handle<v8::Object>::Cast(
@@ -15,8 +14,7 @@ to_json(v8::Handle<v8::Value> value) {
   return (char*) *ret;
 }
 
-v8::Handle<v8::Value>
-from_json(std::string str) {
+v8::Handle<v8::Value> JSONUtil::from_json(std::string str) {
   v8::HandleScope scope;
   v8::TryCatch try_catch;
   v8::Handle<v8::Object> json = v8::Handle<v8::Object>::Cast(
