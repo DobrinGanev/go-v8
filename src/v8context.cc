@@ -79,7 +79,7 @@ char* V8Context::execute(char* source) {
 std::string V8Context::parseV8Exception(v8::TryCatch& try_catch) {
   v8::Handle<v8::Message> message = try_catch.Message();
   v8::String::Utf8Value exception(try_catch.Exception());
-  
+
   std::stringstream ss;
   if (message.IsEmpty()) {
     ss << *exception << std::endl;

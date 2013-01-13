@@ -25,4 +25,4 @@ private:
   std::string err_;
 };
 
-#endif /* !defined _V8CONTEXT_H_*/  
+#endif /* !defined _V8CONTEXT_H_*/
