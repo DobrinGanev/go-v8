@@ -6,19 +6,19 @@ OBJDIR = $(BASEDIR)/obj
 
 INCLUDES = -I$(BASEDIR)/includes
 
+# --Compiler and options--
+CXX = g++
+CXXFLAGS = -fPIC -shared $(INCLUDES)
+LDFLAGS = -lv8
+OUTLIB = $(BINDIR)/libv8wrap.so
+
 #-------OS specific-------
+# TODO windows build probably is broken...
 ifeq ($(GOOS),windows)
 CXXFLAGS = -shared $(INCLUDES)
 LDFLAGS = -lv8 -lstdc++ -lws2_32 -lwinmm
 OUTLIB = $(BINDIR)/v8wrap.dll
-else
-CXXFLAGS = -fPIC -shared $(INCLUDES)
-LDFLAGS = -lv8
-OUTLIB = $(BINDIR)/libv8wrap.so
 endif
-
-# --Compiler and options--
-CXX = g++
 
 #----Source files---------
 SOURCES = \
