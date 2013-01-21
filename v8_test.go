@@ -8,6 +8,7 @@ import (
 
 var (
 	JS_SIMPLE string = `a = 1; a++;`
+	GO_FIB    string = `goFib(%d);`
 	JS_FIB    string = `function fib(n) {
 			var f = 0,
 				n1 = 1,
@@ -193,7 +194,7 @@ func v8EvalRoutine(i int, wg *sync.WaitGroup, t *testing.T) {
 	}
 }
 
-func TestMultiRoutines(t *testing.T) {
+func TestMultiEvalAndRoutines(t *testing.T) {
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -207,6 +208,54 @@ func TestMultiRoutines(t *testing.T) {
 
 	wg.Add(1)
 	go v8EvalRoutine(60, &wg, t)
+
+	wg.Wait()
+}
+
+func goFib(n int) uint64 {
+	var v, n1, n2 uint64
+	n1 = 1
+	if n <= 1 {
+		return uint64(n)
+	}
+	for i := 1; i < n; i++ {
+		v = n1 + n2
+		n2, n1 = n1, v
+	}
+	return v
+}
+
+func TestMultiFuncCallbackAndRouties(t *testing.T) {
+	ctx := NewContext()
+	ctx.AddFunc("goFib", func(args ...interface{}) interface{} {
+		return goFib(int(args[0].(float64)))
+	})
+
+	fibs := [...]int{80, 50, 20, 60}
+
+	var wg sync.WaitGroup
+	for i := 0; i < len(fibs); i++ {
+		wg.Add(1)
+		go func(fibIdx int) {
+			defer wg.Done()
+
+			res, err := ctx.Eval(fmt.Sprintf(GO_FIB, fibIdx))
+			if err != nil {
+				t.Fatal("Failed to evaluate test fib function for index,", fibIdx, "error:", err)
+			}
+			if res == nil {
+				t.Fatal("Unexpected nil for result of test fib function for index", fibIdx)
+			}
+			r := uint64(res.(float64))
+			if !((fibIdx == 80 && r == 23416728348467684) ||
+				(fibIdx == 50 && r == 12586269025) ||
+				(fibIdx == 20 && r == 6765) ||
+				(fibIdx == 60 && r == 1548008755920)) {
+				t.Fatal("Failed to calculate correct fib for index", fibIdx, "received value,", r)
+			}
+
+		}(fibs[i])
+	}
 
 	wg.Wait()
 }
