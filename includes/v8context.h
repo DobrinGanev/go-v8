@@ -12,7 +12,11 @@ public:
   virtual ~V8Context();
 
   char* execute(char* source);
+  char* addFunc(char* name, void* fn);
+
   std::string parseV8Exception(v8::TryCatch& try_catch);
+  v8::Local<v8::FunctionTemplate> makeStaticCallableFunc(v8::InvocationCallback func, void* data);
+  v8::Local<v8::External> ptrToExternal(void* ptr);
 
   v8::Handle<v8::Context> context() { return context_; };
 

@@ -97,6 +97,41 @@ func TestAddFunc(t *testing.T) {
 	}
 }
 
+func TestAddFuncReturnArrayArgs(t *testing.T) {
+	ctx := NewContext()
+
+	err := ctx.AddFunc("testGoFunc", func(args ...interface{}) interface{} {
+		return args
+	})
+
+	if err != nil {
+		t.Fatal("Unexpected error when adding function", err)
+	}
+
+	res, err := ctx.Eval(`testGoFunc(10, "Test string");`)
+	if err != nil {
+		t.Fatal("Unexpected error when executing callback function from javascript", err)
+	}
+	if res == nil {
+		t.Fatal("Expected result from callback function from javascript")
+	}
+	switch res.(type) {
+	case []interface{}:
+	default:
+		t.Fatal("Unexpected type of arguments returned")
+	}
+	arrayRes := res.([]interface{})
+	if len(arrayRes) != 2 {
+		t.Fatal("Expected 2 items to be returned, received", len(arrayRes))
+	}
+	if arrayRes[0].(float64) != 10 {
+		t.Fatal("Expected 10 as value for arrayRes[0], received", arrayRes[0])
+	}
+	if arrayRes[1].(string) != "Test string" {
+		t.Fatal("Expected Test string as value for arrayRes[1], received", arrayRes[1])
+	}
+}
+
 func TestAddFuncReturnObject(t *testing.T) {
 	ctx := NewContext()
 	err := ctx.AddFunc("testFunc", func(args ...interface{}) interface{} {

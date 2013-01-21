@@ -33,7 +33,7 @@ OBJECTS = $(patsubst $(SRCDIR)/%.cc,$(OBJDIR)/%.o,$(SOURCES))
 all: checkdirs $(SOURCES) $(OUTLIB)
 
 test: checkdirs $(SOURCES) $(OUTLIB)
-	LD_LIBRARY_PATH=$(BINDIR) go test
+	LD_LIBRARY_PATH=$(BINDIR) go test -v
 
 clean:
 	rm -rf $(BINDIR) $(OBJDIR)

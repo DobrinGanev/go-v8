@@ -7,13 +7,17 @@
 extern "C" {
 #endif
 
-extern void v8_init(void*);
-extern void* v8_create();
-extern void v8_release(void* ctx);
-extern char* v8_execute(void* ctx, char* str);
+extern void v8_init(void *p);
+
+extern void* v8_create_context();
+extern void v8_release_context(void* ctx);
+
 extern char* v8_error(void* ctx);
 
-typedef char* (*v8wrap_callback)(unsigned int, char*, char*);
+extern char* v8_execute(void* ctx, char* str);
+extern char* v8_add_func(void *ctx, char* name, void* fn);
+
+typedef char* (*v8wrap_callback)(void*, char*);
 
 #ifdef __cplusplus
 }
